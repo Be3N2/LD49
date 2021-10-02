@@ -189,7 +189,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\gameArea.png" />
-    <Image Include="res\redDot.png" />
+    <Image Include="res\player.png" />
+    <Image Include="res\sprites.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

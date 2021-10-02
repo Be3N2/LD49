@@ -54,7 +54,7 @@ void Game::Init()
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load textures
     ResourceManager::LoadTexture("res/gameArea.png", true, "background");
-    ResourceManager::LoadTexture("res/redDot.png", true, "player");
+    ResourceManager::LoadTexture("res/player.png", true, "player");
     Effects = new PostProcessor(ResourceManager::GetShader("post_processing"), this->Width, this->Height);
 
     glm::vec2 playerPos = glm::vec2(

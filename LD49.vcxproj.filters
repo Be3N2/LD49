@@ -130,7 +130,10 @@
     <Image Include="res\gameArea.png">
       <Filter>res</Filter>
     </Image>
-    <Image Include="res\redDot.png">
+    <Image Include="res\sprites.png">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\player.png">
       <Filter>res</Filter>
     </Image>
   </ItemGroup>
