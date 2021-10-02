@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{4c81c54c-97dc-4d32-a079-3b4e642e9486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code">
+      <UniqueIdentifier>{f2388fe8-e376-4a8d-af20-106d14812bde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{b4820367-9bb0-4337-9fc8-567d1047153d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addedPackages">
+      <UniqueIdentifier>{155fa1a7-b398-4321-bc64-83d1e69a8ec4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="fonts">
+      <UniqueIdentifier>{eb065985-ae7b-4a74-b10b-72eca099bc02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res">
+      <UniqueIdentifier>{027e03df-913a-49c0-afb6-a3d5f6a7e9cf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="resource_manager.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="shader.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="sprite_renderer.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>addedPackages</Filter>
+    </ClCompile>
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="stbImage.cpp">
+      <Filter>addedPackages</Filter>
+    </ClCompile>
+    <ClCompile Include="game_object.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="particle_emitter.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="post_processor.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="text_renderer.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource_manager.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sprite_renderer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>addedPackages</Filter>
+    </ClInclude>
+    <ClInclude Include="game_object.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="particle_emitter.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="post_processor.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="text_renderer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sprite.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="sprite.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="particle.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="particle.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="post_processing.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="post_processing.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="text.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="text.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="irrKlang.dll">
+      <Filter>addedPackages</Filter>
+    </None>
+    <None Include="ikpMP3.dll">
+      <Filter>addedPackages</Filter>
+    </None>
+    <None Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="OCRAEXT.TTF">
+      <Filter>fonts</Filter>
+    </Font>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\gameArea.png">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\redDot.png">
+      <Filter>res</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
