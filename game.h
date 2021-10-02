@@ -41,7 +41,8 @@ public:
     bool                    Keys[1024];
     bool                    KeysProcessed[1024];
     unsigned int            Width, Height;
-    int once = 0;
+    unsigned int            GameAreaOffset = 25;
+    unsigned int            GameArea = 550;
 
     // constructor/destructor
     Game(unsigned int width, unsigned int height);

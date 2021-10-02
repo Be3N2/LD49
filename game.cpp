@@ -22,7 +22,7 @@ irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
 float ShakeTime = 0.0f;
 
 Game::Game(unsigned int width, unsigned int height)
-    : State(GAME_MENU), Keys(), Width(width), Height(height)
+    : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
 {
 
 }
@@ -54,15 +54,15 @@ void Game::Init()
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load textures
     ResourceManager::LoadTexture("res/gameArea.png", true, "background");
-    //ResourceManager::LoadTexture("res/redDot.png", true, "player");
+    ResourceManager::LoadTexture("res/redDot.png", true, "player");
     Effects = new PostProcessor(ResourceManager::GetShader("post_processing"), this->Width, this->Height);
 
-  /*  glm::vec2 playerPos = glm::vec2(
-        this->Width / 2.0f - PLAYER_SIZE.x / 2.0f,
-        this->Height - PLAYER_SIZE.y
+    glm::vec2 playerPos = glm::vec2(
+        this->Width / 2.0f,
+        this->Height / 2.0f
     );
 
-    Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("player"));*/
+    Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("player"));
 
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("OCRAEXT.TTF", 24);
@@ -106,29 +106,35 @@ void Game::ProcessInput(float dt)
         }
     }
 
-    //if (this->State == GAME_ACTIVE)
-    //{
-    //    float velocity = PLAYER_VELOCITY * dt;
-    //    // move playeboard
-    //    if (this->Keys[GLFW_KEY_A])
-    //    {
-    //        if (Player->Position.x >= 0.0f) {
-    //            Player->Position.x -= velocity;
-    //        }
-    //    }
-    //    if (this->Keys[GLFW_KEY_D])
-    //    {
-    //        if (Player->Position.x <= this->Width - Player->Size.x) {
-    //            Player->Position.x += velocity;
-    //        }
-    //    }
-    //}
-    //if (State == GAME_WIN) {
-    //    if (Keys[GLFW_KEY_ENTER]) {
-    //        KeysProcessed[GLFW_KEY_ENTER] = true;
-    //        State = GAME_MENU;
-    //    }
-    //}
+    if (this->State == GAME_ACTIVE)
+    {
+        float velocity = PLAYER_VELOCITY * dt;
+        // move playeboard
+        if (this->Keys[GLFW_KEY_W])
+        {
+            if (Player->Position.y >= GameAreaOffset) {
+                Player->Position.y -= velocity;
+            }
+        }
+        if (this->Keys[GLFW_KEY_A])
+        {
+            if (Player->Position.x >= GameAreaOffset) {
+                Player->Position.x -= velocity;
+            }
+        }
+        if (this->Keys[GLFW_KEY_S])
+        {
+            if (Player->Position.y <= GameArea + GameAreaOffset - Player->Size.y) {
+                Player->Position.y += velocity;
+            }
+        }
+        if (this->Keys[GLFW_KEY_D])
+        {
+            if (Player->Position.x <= GameArea + GameAreaOffset - Player->Size.x) {
+                Player->Position.x += velocity;
+            }
+        }
+    }
 }
 
 void Game::Render()
@@ -142,7 +148,7 @@ void Game::Render()
         );
         //std::cout << "Draw SPrite GL Error: " << glGetError() << std::endl;
 
-        //Player->Draw(*Renderer);
+        Player->Draw(*Renderer);
         Effects->EndRender();
         //std::cout << "End Render GL Error: " << glGetError() << std::endl;
         Effects->Render(glfwGetTime());
