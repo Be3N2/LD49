@@ -15,7 +15,8 @@
 enum GameState {
     GAME_ACTIVE,
     GAME_MENU,
-    GAME_WIN
+    GAME_WIN,
+    GAME_OVER
 };
 
 enum Direction {
@@ -27,14 +28,9 @@ enum Direction {
 
 typedef std::tuple<bool, Direction, glm::vec2> Collision;
 
-// Initial size of player paddle
 const glm::vec2 PLAYER_SIZE(32.0f, 32.0f);
-// Initial velocity of the player paddle
-const float PLAYER_VELOCITY(100.0f);
+const float PLAYER_VELOCITY(50.0f);
 
-// Game holds all game-related state and functionality.
-// Combines all game-related data into a single class for
-// easy access to each of the components and manageability.
 class Game
 {
 public:
@@ -58,10 +54,9 @@ public:
     void Render();
     void DoCollisions();
     void ResetLevel();
-    void ResetPlayer();
     Collision CheckCollision(PlayerObject& one, EnemyObject& two);
     Collision CheckIfPlayerAttackHit(PlayerObject& one, EnemyObject& two);
-    //Collision CheckIfEnemyAttackHit(PlayerObject& one, EnemyObject& two);
+    Collision CheckIfEnemyAttackHit(PlayerObject& one, EnemyObject& two);
     Direction VectorDirection(glm::vec2 target);
 };
 #endif

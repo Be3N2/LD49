@@ -16,13 +16,19 @@ public:
         attackingAnim, attackMissAnim, onTheGroundAnim, getUpAnim;
                     
     unsigned int direction; // 0 1 2 3 clockwise for direction
-    bool moving, attacking, animLocked, onTheGround, missed, triggerGetUp, gettingUp;
+    bool moving, attacking, animLocked, onTheGround, missed, triggerGetUp, gettingUp, hit;
+    unsigned int health;
     SpriteAnimation activeAnimation;
     int animStartTime;
 
+    // knockback variables
+    float knockbackDuration, knockbackTimer;
+    glm::vec2 knockback;
+    glm::vec2 distanceTraveled;
+
     PlayerObject();
     PlayerObject(glm::vec2 pos, glm::vec2 size, Texture2D spriteSheet);
-    void Update(double time);
+    void Update(double dt, double glfwTime);
     void Draw(SpriteRenderer& renderer, double time);
 private:
     void initAnimations();

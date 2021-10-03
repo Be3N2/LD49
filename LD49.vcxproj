@@ -195,6 +195,9 @@
     <Image Include="res\map.png" />
     <Image Include="res\sprites.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="res\LD49Final.wav" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

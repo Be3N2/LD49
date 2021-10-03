@@ -146,4 +146,9 @@
       <Filter>res</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="res\LD49Final.wav">
+      <Filter>res</Filter>
+    </Media>
+  </ItemGroup>
 </Project>

@@ -8,9 +8,9 @@ EnemyObject::EnemyObject() :
 
 EnemyObject::EnemyObject(glm::vec2 pos, glm::vec2 size, Texture2D spriteSheet, unsigned int healthTotal, unsigned int gameWidth, unsigned int gameHeight) :
     GameObject(pos, size, spriteSheet, glm::vec3(1.0f)), direction(0), health(healthTotal),
-    boardWidth(gameWidth), boardHeight(gameHeight), hit(false), maxSpeed(10.0f), 
-    knockbackDuration(0.0f), knockbackTimer(0.0f), knockback(0.0f, 0.0f), attackRange(16.0f, 0.0f),
-    animStartTime(0), animLocked(false), attacking(false), recovering(false)
+    boardWidth(gameWidth), boardHeight(gameHeight), hit(false), maxSpeed(32.0f),
+    knockbackDuration(0.0f), knockbackTimer(0.0f), knockback(0.0f, 0.0f), attackRange(4.0f, 8.0f),
+    animStartTime(0), animLocked(false), attacking(false), recovering(false), testHit(false)
 {
     initAnimations();
 }
@@ -20,13 +20,13 @@ void EnemyObject::initAnimations() {
     standingAnimLeft = SpriteAnimation(143, 1, 1000, 10.0f, 20.0f, true);
     walkingRightAnim = SpriteAnimation(140, 2, 1000, 10.0f, 20.0f, true);
     walkingLeftAnim = SpriteAnimation(143, 2, 1000, 10.0f, 20.0f, true);
-    attackRightAnim = SpriteAnimation(150, 8, 1000, 10.0f, 20.0f, false);
-    attackLeftAnim = SpriteAnimation(160, 8, 1000, 10.0f, 20.0f, false);
-    recoverRightAnim = SpriteAnimation(170, 8, 1000, 10.0f, 20.0f, false);
-    recoverLeftAnim = SpriteAnimation(180, 8, 1000, 10.0f, 20.0f, false);
+    attackRightAnim = SpriteAnimation(150, 8, 300, 10.0f, 20.0f, false);
+    attackLeftAnim = SpriteAnimation(160, 8, 300, 10.0f, 20.0f, false);
+    recoverRightAnim = SpriteAnimation(170, 8, 4000, 10.0f, 20.0f, false);
+    recoverLeftAnim = SpriteAnimation(180, 8, 4000, 10.0f, 20.0f, false);
 }
 
-void EnemyObject::Update(double dt, glm::vec2 playerPos, double glfwTime) {
+void EnemyObject::Update(double dt, glm::vec2 playerPos, bool playerOnTheGround, double glfwTime) {
     
     // apply knockback
     if (knockbackDuration > 0.01f) {
@@ -41,12 +41,13 @@ void EnemyObject::Update(double dt, glm::vec2 playerPos, double glfwTime) {
         }
     }
     
-    MoveTowardsPlayer(dt, playerPos);
+    Move(dt, playerPos);
     if (!attacking && !recovering) {
-        bool inRange = checkInRange(playerPos);
+        bool inRange = checkInRange(playerPos, playerOnTheGround);
 
         if (inRange) {
             attacking = true;
+            testHit = true; // tells game to test if attack hit the player and damage accordingly
             if (direction == 0)
                 startAnimation(attackLeftAnim, glfwTime);
             else 
@@ -71,9 +72,14 @@ void EnemyObject::Update(double dt, glm::vec2 playerPos, double glfwTime) {
 
 }
 
-void EnemyObject::MoveTowardsPlayer(double dt, glm::vec2 playerPos) {
+void EnemyObject::Move(double dt, glm::vec2 playerPos) {
+    
     // get a normalized vector towards the player
-    glm::vec2 moveDir = glm::normalize(playerPos - Position);
+    glm::vec2 moveDir = glm::normalize(playerPos - (Position + Size/2.0f));
+
+    if (recovering) {
+        moveDir *= -1;
+    }
     Position += moveDir * float(maxSpeed * dt);
 
     // set facing direction
@@ -83,15 +89,12 @@ void EnemyObject::MoveTowardsPlayer(double dt, glm::vec2 playerPos) {
         direction = 0;
 }
 
-bool EnemyObject::checkInRange(glm::vec2 playerPos) {
-    float distanceToPlayer = glm::length(playerPos - Position);
-    if (direction == 0) {
-
+bool EnemyObject::checkInRange(glm::vec2 playerPos, bool playerOnTheGround) {
+    float distanceToPlayer = glm::length(playerPos - (Position + Size / 2.0f));
+    if (playerOnTheGround) {
+        return distanceToPlayer < 30; // get closer to guarantee hit
     }
-    else if (direction == 1) {
-
-    }
-    return distanceToPlayer < 50;
+    return distanceToPlayer < 40;
 }
 
 void EnemyObject::Draw(SpriteRenderer& renderer, double time) {

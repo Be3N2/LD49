@@ -7,9 +7,10 @@ PlayerObject::PlayerObject() :
 { }
 
 PlayerObject::PlayerObject(glm::vec2 pos, glm::vec2 size, Texture2D spriteSheet) :
-    GameObject(pos, size, spriteSheet,glm ::vec3(1.0f)), moving(false), 
+    GameObject(pos, size, spriteSheet, glm::vec3(1.0f)), moving(false), 
     attacking(false), animLocked(false), onTheGround(false), missed(false),
-    triggerGetUp(false), gettingUp(false)
+    triggerGetUp(false), gettingUp(false), hit(false), health(5),
+    knockbackDuration(0.0f), knockbackTimer(0.0f), knockback(0.0f), distanceTraveled(0.0f)
 {
     initAnimations();
 }
@@ -29,22 +30,39 @@ void PlayerObject::initAnimations() {
     getUpAnim = SpriteAnimation(120, 5, 500, 10.0f, 20.0f, false);
 }
 
-void PlayerObject::Update(double time) {
+void PlayerObject::Update(double dt, double glfwTime) {
     if (attacking && !animLocked) {
         if (missed) 
-            startAnimation(attackMissAnim, time);
+            startAnimation(attackMissAnim, glfwTime);
         else
-            startAnimation(attackingAnim, time);
+            startAnimation(attackingAnim, glfwTime);
     }
 
     if (onTheGround && triggerGetUp) {
         triggerGetUp = false;
         gettingUp = true;
-        startAnimation(getUpAnim, time);
+        startAnimation(getUpAnim, glfwTime);
+    }
+
+    // apply knockback
+    if (knockbackDuration > 0.01f) {
+        knockbackDuration -= dt;
+        float percentageComplete = 1 - (knockbackDuration / knockbackTimer);
+        glm::vec2 distanceFromStart = knockback * (1 - ((1 - percentageComplete) * (1 - percentageComplete))); // 1 - (1-t)(1-t) deceleration interpolation
+        Position += distanceFromStart - distanceTraveled;
+        distanceTraveled = distanceFromStart;
+
+        if (knockbackDuration <= 0.01f) {
+            hit = false;
+        }
     }
 }
 
 void PlayerObject::Draw(SpriteRenderer& renderer, double time) {
+    if (hit)
+        Color = glm::vec3(1.0f, 0.4f, 0.4f);
+    else
+        Color = glm::vec3(1.0f);
 
     if (animLocked && animStartTime + activeAnimation.playbackSpeed < int(time * 1000)) {
         endAnimation();
