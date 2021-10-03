@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include "game_object.h"
+#include "player.h"
 #include <ft2build.h>
 
 // Represents the current state of the game
@@ -26,9 +27,9 @@ enum Direction {
 typedef std::tuple<bool, Direction, glm::vec2> Collision;
 
 // Initial size of player paddle
-const glm::vec2 PLAYER_SIZE(16.0f, 32.0f);
+const glm::vec2 PLAYER_SIZE(32.0f, 32.0f);
 // Initial velocity of the player paddle
-const float PLAYER_VELOCITY(500.0f);
+const float PLAYER_VELOCITY(100.0f);
 
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
@@ -40,12 +41,13 @@ public:
     GameState               State;
     bool                    Keys[1024];
     bool                    KeysProcessed[1024];
+    bool                    MouseLeft, MouseRight;
+    unsigned int            Scale;
     unsigned int            Width, Height;
-    unsigned int            GameAreaOffset = 25;
-    unsigned int            GameArea = 550;
+    unsigned int            ScreenWidth, ScreenHeight;
 
     // constructor/destructor
-    Game(unsigned int width, unsigned int height);
+    Game(unsigned int screenWidth, unsigned int screenHeight, unsigned int scale);
     ~Game();
     // initialize game state (load all shaders/textures/levels)
     void Init();

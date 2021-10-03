@@ -1,4 +1,6 @@
 #include "sprite_renderer.h"
+#include <cmath>
+#include <iostream>
 
 SpriteRenderer::SpriteRenderer(Shader& shader)
 {
@@ -14,7 +16,6 @@ SpriteRenderer::~SpriteRenderer()
 void SpriteRenderer::initRenderData()
 {
 	// configure VAO/VBO
-	unsigned int VBO;
 	float vertices[] = {
 		// pos    // tex
 		0.0, 1.0, 0.0, 1.0f,
@@ -27,10 +28,10 @@ void SpriteRenderer::initRenderData()
 	};
 
 	glGenVertexArrays(1, &this->quadVAO);
-	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &this->quadVBO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, this->quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
 	glBindVertexArray(this->quadVAO);
 	glEnableVertexAttribArray(0);
@@ -62,4 +63,65 @@ void SpriteRenderer::DrawSprite(Texture2D& texture, glm::vec2 position,
 	glBindVertexArray(this->quadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+}
+
+void SpriteRenderer::DrawSprite(Texture2D& texture, glm::vec2 position, 
+	SpriteAnimation animation, double time, int animStartTime,
+	glm::vec2 size, float rotate, glm::vec3 color) 
+{
+	/*unsigned int startIndex;
+	unsigned int tileCount;
+	unsigned int playbackSpeed;
+	unsigned int sheetWidth, sheetHeight;
+	unsigned int tileWidth, tileHeight;*/
+	int timePerTile = animation.playbackSpeed / animation.tileCount;
+	int tileNumber;
+	if (animation.repeats) {
+		tileNumber = (int(time * 1000) % animation.playbackSpeed) / timePerTile;
+	}
+	else { // start from the beggining
+		tileNumber = (int(time * 1000) - animStartTime) / timePerTile;
+		if (tileNumber >= animation.tileCount) {
+			tileNumber = animation.tileCount - 1;
+		}
+	}
+
+	int tileIndex = animation.startIndex + tileNumber;
+
+	float tx, ty, tw, th;
+
+	tw = animation.tileWidth / (animation.sheetWidth * animation.tileWidth);
+	th = animation.tileHeight / (animation.sheetHeight * animation.tileHeight);
+	tx = (tileIndex % int(animation.sheetWidth)) * tw;
+	ty = std::floor(tileIndex / int(animation.sheetWidth)) * th;
+
+	float vertices[] = {
+		// pos    // tex
+		0.0, 1.0, tx,      ty + th,
+		1.0, 0.0, tx + tw, ty,
+		0.0, 0.0, tx,      ty,
+
+		0.0, 1.0, tx,      ty + th,
+		1.0, 1.0, tx + tw, ty + th,
+		1.0, 0.0, tx + tw, ty
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, this->quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+	DrawSprite(texture, position, size, rotate, color);
+
+	float regularVertices[] = {
+		// pos    // tex
+		0.0, 1.0, 0.0, 1.0f,
+		1.0, 0.0, 1.0, 0.0f,
+		0.0, 0.0, 0.0, 0.0f,
+
+		0.0, 1.0, 0.0, 1.0f,
+		1.0, 1.0, 1.0, 1.0f,
+		1.0, 0.0, 1.0, 0.0f
+	};
+	glBindBuffer(GL_ARRAY_BUFFER, this->quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(regularVertices), regularVertices, GL_DYNAMIC_DRAW);
+
 }

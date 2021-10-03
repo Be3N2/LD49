@@ -6,6 +6,7 @@
 #include "resource_manager.h"
 #include "post_processor.h"
 #include "text_renderer.h"
+#include "enemy.h"
 
 #include <iostream>
 #include <string>
@@ -13,16 +14,18 @@
 
 #include <irrklang/irrKlang.h>
 
-GameObject* Player;
+PlayerObject* Player;
+EnemyObject* Enemy;
 SpriteRenderer* Renderer;
 PostProcessor* Effects;
 TextRenderer* Text;
 irrklang::ISoundEngine* SoundEngine = irrklang::createIrrKlangDevice();
 
 float ShakeTime = 0.0f;
+int getUpCounter = 0; // keeps track of number of times q has been pressed to get up
 
-Game::Game(unsigned int width, unsigned int height)
-    : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
+Game::Game(unsigned int screenWidth, unsigned int screenHeight, unsigned int scale)
+    : State(GAME_ACTIVE), Keys(), ScreenWidth(screenWidth), ScreenHeight(screenHeight), Scale(scale), Width(screenWidth / scale), Height(screenHeight / scale)
 {
 
 }
@@ -30,6 +33,7 @@ Game::Game(unsigned int width, unsigned int height)
 Game::~Game()
 {
     delete Player;
+    delete Enemy;
     delete Renderer;
     delete Effects;
     delete Text;
@@ -53,16 +57,12 @@ void Game::Init()
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load textures
-    ResourceManager::LoadTexture("res/gameArea.png", true, "background");
-    ResourceManager::LoadTexture("res/player.png", true, "player");
-    Effects = new PostProcessor(ResourceManager::GetShader("post_processing"), this->Width, this->Height);
+    ResourceManager::LoadTexture("res/map.png", true, "background");
+    ResourceManager::LoadTexture("res/sprites.png", true, "spriteSheet");
+    Effects = new PostProcessor(ResourceManager::GetShader("post_processing"), Width, Height, ScreenWidth, ScreenHeight);
 
-    glm::vec2 playerPos = glm::vec2(
-        this->Width / 2.0f,
-        this->Height / 2.0f
-    );
-
-    Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("player"));
+    Player = new PlayerObject(glm::vec2(30.0f, 80.f), PLAYER_SIZE, ResourceManager::GetTexture("spriteSheet"));
+    Enemy = new EnemyObject(glm::vec2(180.0f, 80.0f), glm::vec2(32.0f, 32.0f), ResourceManager::GetTexture("spriteSheet"));
 
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("OCRAEXT.TTF", 24);
@@ -74,7 +74,7 @@ void Game::Update(float dt)
 {
     // check for collisions
     this->DoCollisions();
-
+    Player->Update(glfwGetTime());
 }
 
 void Game::ResetLevel() {
@@ -87,51 +87,59 @@ void Game::ResetPlayer() {
 
 void Game::ProcessInput(float dt)
 {
-    if (State == GAME_MENU) {
-        if (Keys[GLFW_KEY_ENTER] && !KeysProcessed[GLFW_KEY_ENTER]) {
-            State = GAME_ACTIVE;
-            KeysProcessed[GLFW_KEY_ENTER] = true;
-        }
-        if (Keys[GLFW_KEY_W] && !KeysProcessed[GLFW_KEY_W]) {
-            KeysProcessed[GLFW_KEY_W] = true;
-        }
-        if (Keys[GLFW_KEY_A] && !KeysProcessed[GLFW_KEY_A]) {
-            KeysProcessed[GLFW_KEY_A] = true;
-        }
-        if (Keys[GLFW_KEY_S] && !KeysProcessed[GLFW_KEY_S]) {
-            KeysProcessed[GLFW_KEY_S] = true;
-        }
-        if (Keys[GLFW_KEY_D] && !KeysProcessed[GLFW_KEY_D]) {
-            KeysProcessed[GLFW_KEY_D] = true;
-        }
-    }
+    
 
     if (this->State == GAME_ACTIVE)
     {
         float velocity = PLAYER_VELOCITY * dt;
+        bool moving = false;
         // move playeboard
         if (this->Keys[GLFW_KEY_W])
         {
-            if (Player->Position.y >= GameAreaOffset) {
+            if (!Player->onTheGround && Player->Position.y >= 0) {
                 Player->Position.y -= velocity;
+                Player->direction = 0;
+                moving = true;
             }
         }
         if (this->Keys[GLFW_KEY_A])
         {
-            if (Player->Position.x >= GameAreaOffset) {
+            if (!Player->onTheGround && Player->Position.x >= 0) {
                 Player->Position.x -= velocity;
+                Player->direction = 3;
+                moving = true;
             }
         }
         if (this->Keys[GLFW_KEY_S])
         {
-            if (Player->Position.y <= GameArea + GameAreaOffset - Player->Size.y) {
+            if (!Player->onTheGround && Player->Position.y <= Height - Player->Size.y) {
                 Player->Position.y += velocity;
+                Player->direction = 2;
+                moving = true;
             }
         }
         if (this->Keys[GLFW_KEY_D])
         {
-            if (Player->Position.x <= GameArea + GameAreaOffset - Player->Size.x) {
+            if (!Player->onTheGround && Player->Position.x <= Width - Player->Size.x) {
                 Player->Position.x += velocity;
+                Player->direction = 1;
+                moving = true;
+            }
+        }
+        Player->moving = moving;
+        if (MouseLeft && !Player->onTheGround) {
+            Player->attacking = true;
+            Player->missed = true;
+        }
+        if (this->Keys[GLFW_KEY_Q] && !KeysProcessed[GLFW_KEY_Q])
+        {
+            KeysProcessed[GLFW_KEY_Q] = true;
+            if (Player->onTheGround) {
+                getUpCounter++;
+                if (getUpCounter > 20) {
+                    getUpCounter = 0;
+                    Player->triggerGetUp = true;
+                }
             }
         }
     }
@@ -148,14 +156,19 @@ void Game::Render()
         );
         //std::cout << "Draw SPrite GL Error: " << glGetError() << std::endl;
 
-        Player->Draw(*Renderer);
+        Player->Draw(*Renderer, glfwGetTime());
+        Enemy->Draw(*Renderer, glfwGetTime());
+        
         Effects->EndRender();
         //std::cout << "End Render GL Error: " << glGetError() << std::endl;
         Effects->Render(glfwGetTime());
         //std::cout << "Effects Render GL Error: " << glGetError() << std::endl;
 
         // draw text
-        Text->RenderText("LD49", 300, 300, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        if (Player->onTheGround) {
+            Text->RenderText("Your On the Ground", Width / 2 - 70, 20, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+            Text->RenderText("Rapidly tap Q to get back up!", Width / 2 - 90, 40, 0.4f, glm::vec3(1.0f, 0.0f, 0.0f));
+        }
     }
 }
 

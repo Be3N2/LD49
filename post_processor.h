@@ -10,10 +10,10 @@ class PostProcessor {
 public:
     Shader& PostProcessingShader;
     Texture2D Texture;
-    unsigned int Width, Height;
+    unsigned int Width, Height, ScreenWidth, ScreenHeight;
     bool Confuse, Chaos, Shake;
 
-    PostProcessor(Shader& shader, unsigned int width, unsigned int height);
+    PostProcessor(Shader& shader, unsigned int width, unsigned int height, unsigned int screenWidth, unsigned int screenHeight);
     void BeginRender();
     void EndRender();
     void Render(float time);
