@@ -8,7 +8,6 @@
 #include "text_renderer.h"
 #include "enemy.h"
 
-#include <iostream>
 #include <string>
 #include <sstream>
 
@@ -73,6 +72,12 @@ void Game::Init()
 void Game::Update(float dt)
 {
     if (State == GAME_ACTIVE) {
+        // check for collisions
+        this->DoCollisions();
+        double glfwTime = glfwGetTime();
+
+        Player->Update(dt, glfwTime);
+
         if (Player->health == 0) {
             State = GAME_OVER;
             return;
@@ -81,23 +86,21 @@ void Game::Update(float dt)
             State = GAME_WIN;
             return;
         }
-        // check for collisions
-        this->DoCollisions();
-        double glfwTime = glfwGetTime();
-
+        
         if (ShakeTime > 0.0f) {
             ShakeTime -= dt;
             if (ShakeTime <= 0.0f)
                 Effects->Shake = false;
         }
-
-        Player->Update(dt, glfwTime);
+        
         Enemy->Update(dt, Player->Position + (Player->Size / 2.0f), Player->onTheGround, glfwTime);
 
         if (Enemy->testHit) {
             Enemy->testHit = false;
             Collision result = CheckIfEnemyAttackHit(*Player, *Enemy);
             if (std::get<0>(result)) {
+                SoundEngine->play2D("res/damage.wav", false);
+
                 Player->health -= 1;
                 // player hit!
                 Player->hit = true;
@@ -110,7 +113,7 @@ void Game::Update(float dt)
                 Player->knockbackDuration = 1.0f;
                 Player->knockbackTimer = 1.0f;
                 Player->distanceTraveled = glm::vec2(0.0f, 0.0f);
-                std::cout << "DIRECTION HIT " << std::get<1>(result) << std::endl;
+                
                 switch (std::get<1>(result)) {
                 case UP:
                     Player->knockback = glm::vec2(0.0f, -32.0f);
@@ -118,10 +121,10 @@ void Game::Update(float dt)
                 case DOWN:
                     Player->knockback = glm::vec2(0.0f, 32.0f);
                     break;
-                case RIGHT:
+                case LEFT:
                     Player->knockback = glm::vec2(-32.0f, 0.0f);
                     break;
-                case LEFT:
+                case RIGHT:
                     Player->knockback = glm::vec2(32.0f, 0.0f);
                     break;
                 }
@@ -195,13 +198,18 @@ void Game::ProcessInput(float dt)
         }
 
         Player->moving = moving;
-        if (!Player->hit && !Player->attacking && MouseLeft && !Player->onTheGround) {
+        if (
+            !Player->hit && !Player->attacking && MouseLeft && 
+            !Player->onTheGround && Player->endOfLastAttack + Player->attackCooldown < int(glfwGetTime() * 1000)
+        ) {
             Collision result = CheckIfPlayerAttackHit(*Player, *Enemy);
             Player->attacking = true;
             Player->missed = !std::get<0>(result);
             Enemy->hit = std::get<0>(result);
             if (std::get<0>(result)) {
+                SoundEngine->play2D("res/enemyDamage.wav", false);
                 Enemy->health -= 1;
+
                 // apply knockback force to enemy
                 Enemy->knockbackDuration = 0.4f;
                 Enemy->knockbackTimer = 0.4f;
@@ -267,11 +275,11 @@ void Game::Render()
         }
     }
     else if (State == GAME_WIN) {
-        Text->RenderText("Victory!", Width / 2 - 30, 20, 0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
+        Text->RenderText("Victory!", Width / 2 - 60, 20, 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
         Text->RenderText("Press ENTER to restart", Width / 2 - 85, 50, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
     }
     else if (State == GAME_OVER) {
-        Text->RenderText("Defeat!", Width / 2 - 30, 20, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+        Text->RenderText("Defeat!", Width / 2 - 50, 20, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         Text->RenderText("Press ENTER to restart", Width / 2 - 85, 50, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
     }
 
@@ -356,7 +364,7 @@ Collision Game::CheckIfEnemyAttackHit(PlayerObject& one, EnemyObject& two) {
         bool collisionY = one.Position.y + one.Size.y >= two.Position.y - two.attackRange.y &&
             two.Position.y + two.Size.y + two.attackRange.y >= one.Position.y;
         
-        glm::vec2 oneToTwo = one.Position - two.Position;
+        glm::vec2 oneToTwo = two.Position - one.Position;
         return Collision(collisionX && collisionY, VectorDirection(oneToTwo), oneToTwo);
     }
     else {
@@ -364,9 +372,9 @@ Collision Game::CheckIfEnemyAttackHit(PlayerObject& one, EnemyObject& two) {
             two.Position.x + two.Size.x + two.attackRange.x >= one.Position.x;
 
         bool collisionY = one.Position.y + one.Size.y >= two.Position.y - two.attackRange.y &&
-            two.Position.y + two.Size.y + two.attackRange.y >= one.Position.y;
+            two.Position.y + two.Size.y >= one.Position.y;
 
-        glm::vec2 oneToTwo = one.Position - two.Position;
+        glm::vec2 oneToTwo = two.Position - one.Position;
         return Collision(collisionX && collisionY, VectorDirection(oneToTwo), oneToTwo);
     }
 }

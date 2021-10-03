@@ -1,15 +1,14 @@
 
 #include "player.h"
-#include <iostream>
 
 PlayerObject::PlayerObject() :
     GameObject()
 { }
 
 PlayerObject::PlayerObject(glm::vec2 pos, glm::vec2 size, Texture2D spriteSheet) :
-    GameObject(pos, size, spriteSheet, glm::vec3(1.0f)), moving(false), 
+    GameObject(pos, size, spriteSheet, glm::vec3(1.0f)), moving(false),
     attacking(false), animLocked(false), onTheGround(false), missed(false),
-    triggerGetUp(false), gettingUp(false), hit(false), health(5),
+    triggerGetUp(false), gettingUp(false), hit(false), health(5), endOfLastAttack(0), attackCooldown(500),
     knockbackDuration(0.0f), knockbackTimer(0.0f), knockback(0.0f), distanceTraveled(0.0f)
 {
     initAnimations();
@@ -65,7 +64,7 @@ void PlayerObject::Draw(SpriteRenderer& renderer, double time) {
         Color = glm::vec3(1.0f);
 
     if (animLocked && animStartTime + activeAnimation.playbackSpeed < int(time * 1000)) {
-        endAnimation();
+        endAnimation(time);
     }
 
     if (animLocked) {
@@ -120,10 +119,11 @@ void PlayerObject::startAnimation(SpriteAnimation animation, double startTime) {
     animStartTime = int(startTime * 1000);
 }
 
-void PlayerObject::endAnimation() {
+void PlayerObject::endAnimation(double glfwTime) {
     animLocked = false;
     if (attacking) {
         attacking = false;
+        endOfLastAttack = int(glfwTime * 1000);
         if (missed) {
             onTheGround = true;
             missed = false;

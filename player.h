@@ -17,6 +17,7 @@ public:
                     
     unsigned int direction; // 0 1 2 3 clockwise for direction
     bool moving, attacking, animLocked, onTheGround, missed, triggerGetUp, gettingUp, hit;
+    int endOfLastAttack, attackCooldown;
     unsigned int health;
     SpriteAnimation activeAnimation;
     int animStartTime;
@@ -33,7 +34,7 @@ public:
 private:
     void initAnimations();
     void startAnimation(SpriteAnimation animation, double startTime);
-    void endAnimation();
+    void endAnimation(double glfwTime);
 };
 
 #endif

@@ -1,6 +1,5 @@
 
 #include "enemy.h"
-#include <iostream>
 
 EnemyObject::EnemyObject() :
     GameObject()
@@ -22,8 +21,8 @@ void EnemyObject::initAnimations() {
     walkingLeftAnim = SpriteAnimation(143, 2, 1000, 10.0f, 20.0f, true);
     attackRightAnim = SpriteAnimation(150, 8, 300, 10.0f, 20.0f, false);
     attackLeftAnim = SpriteAnimation(160, 8, 300, 10.0f, 20.0f, false);
-    recoverRightAnim = SpriteAnimation(170, 8, 4000, 10.0f, 20.0f, false);
-    recoverLeftAnim = SpriteAnimation(180, 8, 4000, 10.0f, 20.0f, false);
+    recoverRightAnim = SpriteAnimation(170, 8, 3000, 10.0f, 20.0f, false);
+    recoverLeftAnim = SpriteAnimation(180, 8, 3000, 10.0f, 20.0f, false);
 }
 
 void EnemyObject::Update(double dt, glm::vec2 playerPos, bool playerOnTheGround, double glfwTime) {
@@ -63,8 +62,8 @@ void EnemyObject::Update(double dt, glm::vec2 playerPos, bool playerOnTheGround,
 
     if (Position.x < 0)
         Position.x = 0;
-    if (Position.x + Size.x >= boardWidth)
-        Position.x = boardWidth - Size.x;
+    if (Position.x + Size.x >= boardWidth - 8)
+        Position.x = boardWidth - Size.x - 8;
     if (Position.y < 0)
         Position.y = 0;
     if (Position.y + Size.y >= boardHeight)

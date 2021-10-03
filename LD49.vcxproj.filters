@@ -150,5 +150,11 @@
     <Media Include="res\LD49Final.wav">
       <Filter>res</Filter>
     </Media>
+    <Media Include="res\damage.wav">
+      <Filter>res</Filter>
+    </Media>
+    <Media Include="res\enemyDamage.wav">
+      <Filter>res</Filter>
+    </Media>
   </ItemGroup>
 </Project>
