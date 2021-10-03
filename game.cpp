@@ -74,8 +74,10 @@ void Game::Update(float dt)
 {
     // check for collisions
     this->DoCollisions();
-    Player->Update(glfwGetTime());
-    Enemy->Update(dt);
+    double glfwTime = glfwGetTime();
+
+    Player->Update(glfwTime);
+    Enemy->Update(dt, Player->Position, glfwTime);
 }
 
 void Game::ResetLevel() {
