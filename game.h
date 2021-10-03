@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include "game_object.h"
+#include "enemy.h"
 #include "player.h"
 #include <ft2build.h>
 
@@ -58,7 +59,9 @@ public:
     void DoCollisions();
     void ResetLevel();
     void ResetPlayer();
-    bool CheckCollision(GameObject& one, GameObject& two);
+    Collision CheckCollision(PlayerObject& one, EnemyObject& two);
+    Collision CheckIfPlayerAttackHit(PlayerObject& one, EnemyObject& two);
+    //Collision CheckIfEnemyAttackHit(PlayerObject& one, EnemyObject& two);
+    Direction VectorDirection(glm::vec2 target);
 };
-
 #endif

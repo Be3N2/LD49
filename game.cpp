@@ -62,7 +62,7 @@ void Game::Init()
     Effects = new PostProcessor(ResourceManager::GetShader("post_processing"), Width, Height, ScreenWidth, ScreenHeight);
 
     Player = new PlayerObject(glm::vec2(30.0f, 80.f), PLAYER_SIZE, ResourceManager::GetTexture("spriteSheet"));
-    Enemy = new EnemyObject(glm::vec2(180.0f, 80.0f), glm::vec2(32.0f, 32.0f), ResourceManager::GetTexture("spriteSheet"));
+    Enemy = new EnemyObject(glm::vec2(180.0f, 80.0f), glm::vec2(32.0f, 32.0f), ResourceManager::GetTexture("spriteSheet"), 5, Width, Height);
 
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("OCRAEXT.TTF", 24);
@@ -75,6 +75,7 @@ void Game::Update(float dt)
     // check for collisions
     this->DoCollisions();
     Player->Update(glfwGetTime());
+    Enemy->Update(dt);
 }
 
 void Game::ResetLevel() {
@@ -87,8 +88,6 @@ void Game::ResetPlayer() {
 
 void Game::ProcessInput(float dt)
 {
-    
-
     if (this->State == GAME_ACTIVE)
     {
         float velocity = PLAYER_VELOCITY * dt;
@@ -127,9 +126,31 @@ void Game::ProcessInput(float dt)
             }
         }
         Player->moving = moving;
-        if (MouseLeft && !Player->onTheGround) {
+        if (!Player->attacking && MouseLeft && !Player->onTheGround) {
+            Collision result = CheckIfPlayerAttackHit(*Player, *Enemy);
             Player->attacking = true;
-            Player->missed = true;
+            Player->missed = !std::get<0>(result);
+            Enemy->hit = std::get<0>(result);
+            if (std::get<0>(result)) {
+                // apply knockback force to enemy
+                Enemy->knockbackDuration = 0.4f;
+                Enemy->knockbackTimer = 0.4f;
+                Enemy->distanceTraveled = glm::vec2(0.0f, 0.0f);
+                switch (std::get<1>(result)) {
+                case UP:
+                    Enemy->knockback = glm::vec2(0.0f, -16.0f);
+                    break;
+                case DOWN:
+                    Enemy->knockback = glm::vec2(0.0f, 16.0f);
+                    break;
+                case LEFT:
+                    Enemy->knockback = glm::vec2(-16.0f, 0.0f);
+                    break;
+                case RIGHT:
+                    Enemy->knockback = glm::vec2(16.0f, 0.0f);
+                    break;
+                }
+            }
         }
         if (this->Keys[GLFW_KEY_Q] && !KeysProcessed[GLFW_KEY_Q])
         {
@@ -156,8 +177,8 @@ void Game::Render()
         );
         //std::cout << "Draw SPrite GL Error: " << glGetError() << std::endl;
 
-        Player->Draw(*Renderer, glfwGetTime());
         Enemy->Draw(*Renderer, glfwGetTime());
+        Player->Draw(*Renderer, glfwGetTime());
         
         Effects->EndRender();
         //std::cout << "End Render GL Error: " << glGetError() << std::endl;
@@ -169,23 +190,99 @@ void Game::Render()
             Text->RenderText("Your On the Ground", Width / 2 - 70, 20, 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
             Text->RenderText("Rapidly tap Q to get back up!", Width / 2 - 90, 40, 0.4f, glm::vec3(1.0f, 0.0f, 0.0f));
         }
+        if (Enemy->hit) {
+            Text->RenderText("ENEMY HIT", Width / 2 - 70, 20, 0.5f, glm::vec3(1.0f, 0.0f, 1.0f));
+        }
     }
 }
 
 void Game::DoCollisions()
 {
-    // check player doesn't go out of bounds
     // check player against enemy
+    Collision result = CheckCollision(*Player, *Enemy);
+    if (std::get<0>(result)) {
+        float penetration;
+        switch (std::get<1>(result)) {
+        case UP:
+            penetration = Enemy->Size.y - (Enemy->Size.y - (Enemy->Position.y - Player->Position.y + 16));
+            Player->Position.y += penetration;
+            break;
+        case DOWN:
+            penetration = Player->Size.y - (Enemy->Position.y + 16 - Player->Position.y);
+            Player->Position.y -= penetration;
+            break;
+        case LEFT:
+            penetration = Enemy->Size.x - (Player->Position.x - Enemy->Position.x) - 16; 
+            Player->Position.x += penetration;
+            break;
+        case RIGHT:
+            penetration = (Player->Position.x + Player->Size.x - 8) - (Enemy->Position.x + 8) ;
+            Player->Position.x -= penetration;
+            break;
+        }
+    }
 }
 
-bool Game::CheckCollision(GameObject& one, GameObject& two) // AABB - AABB collision
+Collision Game::CheckCollision(PlayerObject& one, EnemyObject& two) // AABB - AABB collision
 {
     // collision x-axis?
-    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
-        two.Position.x + two.Size.x >= one.Position.x;
+    // 8 pixel buffer on all the x's
+    bool collisionX = one.Position.x + one.Size.x - 8 >= two.Position.x + 8 &&
+        two.Position.x + two.Size.x - 8 >= one.Position.x + 8;
     // collision y-axis?
-    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
+    // 16 pixel buffer on enemy top y and players top y
+    bool collisionY = one.Position.y + one.Size.y >= two.Position.y + 16 &&
+        two.Position.y + two.Size.y >= one.Position.y + 16;
+    // collision only if on both axes
+    if (collisionX && collisionY) {
+        // determine direction
+        glm::vec2 oneToTwo = one.Position - two.Position;
+        return Collision(true, VectorDirection(oneToTwo), oneToTwo);
+    }
+    else {
+        return Collision(false, UP, glm::vec2(0.0f, 0.0f));
+    }
+}
+
+Collision Game::CheckIfPlayerAttackHit(PlayerObject& one, EnemyObject& two) {
+    // collision x-axis?
+    // add 16 pixel range to player ones' size compared to checkCollision
+    bool collisionX = one.Position.x + one.Size.x + 8 >= two.Position.x + 8 &&
+        two.Position.x + two.Size.x - 8 >= one.Position.x - 8;
+    // collision y-axis?
+    // add another 16 pixel range to player ones' size compared to checkCollision
+    bool collisionY = one.Position.y + one.Size.y + 16 >= two.Position.y + 16 &&
         two.Position.y + two.Size.y >= one.Position.y;
     // collision only if on both axes
-    return collisionX && collisionY;
+    if (collisionX && collisionY) {
+        // determine direction
+        glm::vec2 oneToTwo = one.Position - two.Position;
+        return Collision(true, VectorDirection(oneToTwo), oneToTwo);
+    }
+    else {
+        return Collision(false, UP, glm::vec2(0.0f, 0.0f));
+    }
+}
+
+//Collision Game::CheckIfEnemyAttackHit(PlayerObject& one, EnemyObject& two) { 
+//        
+//}
+
+Direction Game::VectorDirection(glm::vec2 target) {
+    glm::vec2 compass[] = {
+        glm::vec2(0.0f, 1.0f),  // Up
+        glm::vec2(-1.0f, 0.0f),  // Right
+        glm::vec2(0.0f, -1.0f), // Down
+        glm::vec2(1.0f, 0.0f)  // left
+    };
+    float max = 0.0f;
+    unsigned int best_match = -1;
+    for (unsigned int i = 0; i < 4; i++) {
+        float dot_product = glm::dot(glm::normalize(target), compass[i]);
+        if (dot_product > max) {
+            max = dot_product;
+            best_match = i;
+        }
+    }
+    return (Direction)best_match;
 }

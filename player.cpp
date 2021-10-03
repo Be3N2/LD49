@@ -31,8 +31,12 @@ void PlayerObject::initAnimations() {
 
 void PlayerObject::Update(double time) {
     if (attacking && !animLocked) {
-        startAnimation(attackMissAnim, time);
+        if (missed) 
+            startAnimation(attackMissAnim, time);
+        else
+            startAnimation(attackingAnim, time);
     }
+
     if (onTheGround && triggerGetUp) {
         triggerGetUp = false;
         gettingUp = true;
