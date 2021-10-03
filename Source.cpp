@@ -18,7 +18,7 @@ const unsigned int SCREEN_HEIGHT = 600;
 
 const unsigned int SCALE = 3;
 
-Game Breakout(SCREEN_WIDTH, SCREEN_HEIGHT, SCALE);
+Game LudumDare(SCREEN_WIDTH, SCREEN_HEIGHT, SCALE);
 
 int main(int argc, char* argv[])
 {
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 #endif
     glfwWindowHint(GLFW_RESIZABLE, false);
 
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Ludum Dare 49 - Roboturai", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
     // glad: load all OpenGL function pointers
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 
     // initialize game
     // ---------------
-    Breakout.Init();
+    LudumDare.Init();
 
     // deltaTime variables
     // -------------------
@@ -72,17 +72,17 @@ int main(int argc, char* argv[])
 
         // manage user input
         // -----------------
-        Breakout.ProcessInput(deltaTime);
+        LudumDare.ProcessInput(deltaTime);
 
         // update game state
         // -----------------
-        Breakout.Update(deltaTime);
+        LudumDare.Update(deltaTime);
 
         // render
         // ------
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        Breakout.Render();
+        LudumDare.Render();
 
         glfwSwapBuffers(window);
     }
@@ -103,10 +103,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key >= 0 && key < 1024)
     {
         if (action == GLFW_PRESS)
-            Breakout.Keys[key] = true;
+            LudumDare.Keys[key] = true;
         else if (action == GLFW_RELEASE) {
-            Breakout.Keys[key] = false;
-            Breakout.KeysProcessed[key] = false;
+            LudumDare.Keys[key] = false;
+            LudumDare.KeysProcessed[key] = false;
         }
     }
 }
@@ -114,13 +114,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        Breakout.MouseLeft = true;
+        LudumDare.MouseLeft = true;
     else
-        Breakout.MouseLeft = false;
+        LudumDare.MouseLeft = false;
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-        Breakout.MouseRight = true;
+        LudumDare.MouseRight = true;
     else
-        Breakout.MouseRight = false;
+        LudumDare.MouseRight = false;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

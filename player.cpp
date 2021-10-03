@@ -7,7 +7,7 @@ PlayerObject::PlayerObject() :
 
 PlayerObject::PlayerObject(glm::vec2 pos, glm::vec2 size, Texture2D spriteSheet) :
     GameObject(pos, size, spriteSheet, glm::vec3(1.0f)), moving(false),
-    attacking(false), animLocked(false), onTheGround(false), missed(false),
+    attacking(false), animLocked(false), onTheGround(false), missed(false), direction(1),
     triggerGetUp(false), gettingUp(false), hit(false), health(5), endOfLastAttack(0), attackCooldown(500),
     knockbackDuration(0.0f), knockbackTimer(0.0f), knockback(0.0f), distanceTraveled(0.0f)
 {

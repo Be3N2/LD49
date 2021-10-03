@@ -264,7 +264,7 @@ void Game::Render()
 
     // draw text
     if (this->State == GAME_MENU) {
-        Text->RenderText("Unstable Robots", Width / 2 - 60, 20, 0.5f, glm::vec3(1.0f));
+        Text->RenderText("Roboturai", Width / 2 - 35, 20, 0.5f, glm::vec3(1.0f));
         Text->RenderText("WASD to move Mouse click to attack!", Width / 2 - 100, 40, 0.4f, glm::vec3(0.0f));
         Text->RenderText("Press ENTER to start", Width / 2 - 60, 60, 0.4f, glm::vec3(0.0f));
     } 
